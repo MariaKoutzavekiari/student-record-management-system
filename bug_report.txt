@@ -1,0 +1,115 @@
+Bug #: 1
+Type: Crash
+Line(s): 67-71
+Original:
+csv_file = open(csv_filename, newline="")
+csv_reader = csv.DictReader(csv_file)
+csv_file.close()
+
+for row in csv_reader:
+Fixed:
+with open(csv_filename, newline="") as csv_file:
+    csv_reader = csv.DictReader(csv_file)
+    for row in csv_reader:
+        ...
+Symptom: The program raises "ValueError: I/O operation on closed file" when it tries to read the CSV.
+Explanation: DictReader reads from the file while it is being iterated. The file must remain open until all rows have been read.
+
+Bug #: 2
+Type: Logic
+Line(s): 63-89
+Original:
+No statement sets csv_loaded to True after a successful load.
+Fixed:
+csv_loaded = True
+Symptom: Options 2 and 3 continue to say that no data has been loaded after Option 1 succeeds.
+Explanation: The flag must be updated after records are successfully loaded.
+
+Bug #: 3
+Type: Logic
+Line(s): 63-86
+Original:
+student_records.append(student_record)
+Fixed:
+student_records.clear()
+# then load and append the new records
+Symptom: Loading students.csv a second time produces 20 records instead of 10.
+Explanation: Clearing the list before a reload prevents duplicate copies of previously loaded records.
+
+Bug #: 4
+Type: Logic
+Line(s): 106-116
+Original:
+row_number = 1
+for current_student in student_records:
+    print(...)
+Fixed:
+row_number = 1
+for current_student in student_records:
+    print(...)
+    row_number += 1
+Symptom: Every listed student is displayed with row number 1.
+Explanation: The row counter must increase after each printed record.
+
+Bug #: 5
+Type: Subtle
+Line(s): 131, 136
+Original:
+search_id = input("Enter the Student ID to search for: ").strip()
+...
+student_records[search_index]["StudentID"].upper() == search_id
+Fixed:
+search_id = input("Enter the Student ID to search for: ").strip().upper()
+Symptom: Searching for s1005 does not match S1005.
+Explanation: Normalizing the user's input to uppercase makes the search case-insensitive.
+
+Bug #: 6
+Type: Subtle
+Line(s): 131-144
+Original:
+The previous value of found_student is reused for the next search.
+Fixed:
+found_student = None
+search_index = 0
+Symptom: After a successful search, a later unsuccessful search can display the previously found student.
+Explanation: Each search must begin with no match stored.
+
+Bug #: 7
+Type: Crash
+Line(s): 135
+Original:
+while search_index <= len(student_records):
+Fixed:
+while search_index < len(student_records):
+Symptom: A missing student can cause IndexError because index len(student_records) is outside the list.
+Explanation: Valid list indexes stop at len(list) - 1.
+
+Bug #: 8
+Type: Logic
+Line(s): 138
+Original:
+search_index = len(student_records) - 1  # Force loop to end
+Fixed:
+break
+Symptom: A match, especially the last record, can keep the loop from ending correctly.
+Explanation: break immediately exits the search loop after a match is found.
+
+Bug #: 9
+Type: Logic
+Line(s): 149
+Original:
+found_student['Student_ID']
+Fixed:
+found_student['StudentID']
+Symptom: A successful search raises KeyError when the program tries to display the student's ID.
+Explanation: The dictionary key created from the CSV field is StudentID, not Student_ID.
+
+Bug #: 10
+Type: Logic
+Line(s): 159
+Original:
+elif menu_choice == 4:
+Fixed:
+elif menu_choice == "4":
+Symptom: Choosing option 4 is treated as invalid input and the program does not exit.
+Explanation: input() returns a string, so the menu choice must be compared with the string "4".
